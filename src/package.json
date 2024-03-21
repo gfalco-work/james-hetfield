@@ -1,0 +1,12 @@
+{
+  "name": "image-resizer",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "aws-sdk": "^2.1582.0",
+    "sharp": "^0.33.2"
+  },
+  "scripts": {
+    "install": "npm install --os=linux --cpu=x64 sharp"
+  }
+}
