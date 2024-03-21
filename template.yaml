@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Image Resizer
-  
+
 Globals:
   Function:
     Timeout: 3
@@ -26,7 +26,7 @@ Resources:
               S3Key:
                 Rules:
                   - Name: prefix
-                    Value: "product-images"
+                    Value: "unprocessed-product-images"
 
   AssetsBucket:
     Type: AWS::S3::Bucket
