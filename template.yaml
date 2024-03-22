@@ -15,9 +15,8 @@ Resources:
       Handler: resize.lambdaHandler
       Runtime: nodejs20.x
       Timeout: 60
-      Policies: AWSLambdaExecute
       Events:
-        CreateThumbnailEvent:
+        CreateImagesEvent:
           Type: S3
           Properties:
             Bucket: !Ref AssetsBucket
@@ -27,7 +26,20 @@ Resources:
                 Rules:
                   - Name: prefix
                     Value: "unprocessed-product-images"
-
+      Policies:
+        - Statement:
+            - Sid: CloudWatchLogsPermissions
+              Action:
+                - "logs:*"
+              Effect: Allow
+              Resource: "arn:aws:logs:*:*:*"
+            - Sid: S3Permissions
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:DeleteObject
+              Effect: Allow
+              Resource: arn:aws:s3:::*
   AssetsBucket:
     Type: AWS::S3::Bucket
     Properties:

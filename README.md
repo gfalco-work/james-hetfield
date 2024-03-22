@@ -6,6 +6,7 @@ The functions are implements in NodeJs v20
 
 - [resize.mjs](src%2Fresize.mjs) - Lambda function that resize images and organise them in a folder (original, thumbnail, carousel, product)
   - <b>The Function is basic and should be improved passing dynamic values</b>
+  - Improve validation following this https://docs.aws.amazon.com/lambda/latest/dg/with-s3-tutorial.html
 - package.json - To define the dependencies
 - template.yaml - A template that defines the application's AWS resources.
 
