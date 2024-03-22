@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "aws-sdk": "^2.1582.0",
+    "parse-multipart": "^1.0.4",
     "sharp": "^0.33.2"
   },
   "scripts": {
