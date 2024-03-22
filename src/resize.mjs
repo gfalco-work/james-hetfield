@@ -23,23 +23,31 @@ export const lambdaHandler = async (event) => {
       const imageName = imageNameWithExtension.split('.').slice(0, -1).join('.');
       const fileExtension = key.split('.').pop();
 
-      const sizes = {
-        _thumbnail: 150,
-        _carousel: 300,
-        _product: 600
-      };
+      // Check that the image type is supported
+      if (fileExtension === "jpg" || fileExtension === "png") {
+        const sizes = {
+          _thumbnail: 150,
+          _carousel: 300,
+          _product: 600
+        };
 
-      // Loop through sizes to create resized copies of the original image
-      for (const [sizeKey, sizeValue] of Object.entries(sizes)) {
-        const resizedImage = await resizeImage(image.Body, sizeValue);
-        const copyKey = `${folder}/${imageName}/${imageName}${sizeKey}.${fileExtension}`;
-        console.log('resized imageName: ' + copyKey);
-        await uploadImageToS3(resizedImage, bucket, copyKey);
+        // Loop through sizes to create resized copies of the original image
+        for (const [sizeKey, sizeValue] of Object.entries(sizes)) {
+          const resizedImage = await resizeImage(image.Body, sizeValue);
+          const copyKey = `${folder}/${imageName}/${imageName}${sizeKey}.${fileExtension}`;
+          console.log('resized imageName: ' + copyKey);
+          await uploadImageToS3(resizedImage, bucket, copyKey);
+        }
+        body = "Images Resized";
+
+        // Move the original image to its folder
+        await moveImage(image.Body, bucket, key, `${folder}/${imageName}/${imageName}.${fileExtension}`);
+      } else {
+        body = `Unsupported image type: ${fileExtension}`;
+        console.log(body);
+        statusCode = 400;
+        return;
       }
-      body = "Images Resized";
-
-      // Move the original image to its folder
-      await moveImage(image.Body, bucket, key, `${folder}/${imageName}/${imageName}.${fileExtension}`);
     }
   } catch (err) {
     console.error(err);
@@ -49,7 +57,7 @@ export const lambdaHandler = async (event) => {
 
   console.log(body);
   return {statusCode, body};
-};
+}
 
 // Function to resize an image using Sharp
 async function resizeImage(imageBuffer, size) {

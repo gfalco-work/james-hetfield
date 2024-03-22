@@ -40,10 +40,6 @@ Resources:
                 - s3:DeleteObject
               Effect: Allow
               Resource: arn:aws:s3:::*
-  AssetsBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: vai-assets
 
   LambdaInvokePermission:
     Type: 'AWS::Lambda::Permission'
@@ -53,3 +49,8 @@ Resources:
       Principal: 's3.amazonaws.com'
       SourceAccount: !Sub ${AWS::AccountId}
       SourceArn: !GetAtt AssetsBucket.Arn
+
+  AssetsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: vai-assets
