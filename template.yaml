@@ -1,11 +1,21 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Image Resizer
+  Image Api
 
 Globals:
   Function:
     Timeout: 3
+  Api:
+    TracingEnabled: true
+    Cors:
+      AllowMethods: "'POST', 'OPTIONS'"
+      AllowHeaders: "'Content-Type'"
+      AllowOrigin: "'*'"
+      MaxAge: "'86400'"
+    BinaryMediaTypes:
+      - "multipart/form-data"
+      - "application/json"
 
 Resources:
   Uploader:
@@ -15,6 +25,12 @@ Resources:
       Handler: uploader.lambdaHandler
       Runtime: nodejs20.x
       Timeout: 60
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /images/upload
+            Method: POST
       Policies:
         - Statement:
             - Sid: CloudWatchLogsPermissions
@@ -36,16 +52,11 @@ Resources:
       Runtime: nodejs20.x
       Timeout: 60
       Events:
-        CreateImagesEvent:
-          Type: S3
+        Api:
+          Type: Api
           Properties:
-            Bucket: !Ref AssetsBucket
-            Events: s3:ObjectCreated:Put
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: prefix
-                    Value: "unprocessed-product-images"
+            Path: /images/resize
+            Method: POST
       Policies:
         - Statement:
             - Sid: CloudWatchLogsPermissions
