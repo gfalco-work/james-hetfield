@@ -5,13 +5,15 @@ const s3 = new aws.S3();
 const BUCKET_NAME = 'vai-assets';
 
 export const lambdaHandler = async (event) => {
+  console.log('Received Step Functions event:', JSON.stringify(event, null, 2));
+
   const folder = 'unprocessed-images';
 
   let body;
   let statusCode = 200;
   const result = await multipart.parse(event);
-  const { content, filename, contentType } = result.files[0];
 
+  const { content, filename, contentType } = result.files[0];
   try {
     const params = {
       Bucket: `${BUCKET_NAME}/${folder}`,

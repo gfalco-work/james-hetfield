@@ -3,12 +3,16 @@ import sharp from 'sharp';
 
 const s3 = new aws.S3();
 export const lambdaHandler = async (event) => {
-  console.log('Received S3 event:', JSON.stringify(event, null, 2));
-  if (event.Records[0].eventName === "ObjectRemoved:Delete") {
-    return;
-  }
-  const bucket = event.Records[0].s3.bucket.name;
-  const key = event.Records[0].s3.object.key;
+  console.log('Received Step Functions event:', JSON.stringify(event, null, 2));
+
+  // Extract input data from the event
+  const input = event.Input; // Assuming the input data is directly passed as "Input" in the event
+
+  // Extract the necessary information from the input data
+  const bucket = input.bucket;
+  const key = input.key;
+
+  console.log('key: ' + key);
   const folder = 'resized-product-images';
 
   let body;
@@ -31,22 +35,27 @@ export const lambdaHandler = async (event) => {
           _product: 600
         };
 
+        const resizedImageUrls = []; // Array to store resized image URLs
+
         // Loop through sizes to create resized copies of the original image
         for (const [sizeKey, sizeValue] of Object.entries(sizes)) {
           const resizedImage = await resizeImage(image.Body, sizeValue);
           const copyKey = `${folder}/${imageName}/${imageName}${sizeKey}.${fileExtension}`;
           console.log('resized imageName: ' + copyKey);
-          await uploadImageToS3(resizedImage, bucket, copyKey);
+          const resizedImageUrl = await uploadImageToS3(resizedImage, bucket, copyKey);
+          resizedImageUrls.push(resizedImageUrl); // Store resized image URL
         }
-        body = "Images Resized";
 
+        const originalImageDestination = `${folder}/${imageName}/${imageName}.${fileExtension}`;
         // Move the original image to its folder
-        await moveImage(image.Body, bucket, key, `${folder}/${imageName}/${imageName}.${fileExtension}`);
+        const resizedImageUrl = await moveImage(image.Body, bucket, key, originalImageDestination);
+        resizedImageUrls.push(resizedImageUrl); // Store resized image URL
+        // Return the resized image URLs in the response body
+        return {statusCode, body: JSON.stringify({message: "Images Resized", productImage: 'imageName', resizedImageUrls})};
       } else {
         body = `Unsupported image type: ${fileExtension}`;
         console.log(body);
         statusCode = 400;
-        return;
       }
     }
   } catch (err) {
@@ -56,7 +65,14 @@ export const lambdaHandler = async (event) => {
   }
 
   console.log(body);
-  return {statusCode, body};
+
+  let headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS"
+  };
+
+  return {statusCode, body, headers};
 }
 
 // Function to resize an image using Sharp
@@ -69,7 +85,7 @@ async function resizeImage(imageBuffer, size) {
 
 // Function to upload an image to S3
 async function uploadImageToS3(imageBuffer, bucket, key) {
-  await s3.putObject({
+  return await s3.putObject({
     Bucket: bucket,
     Key: key,
     Body: imageBuffer
@@ -77,8 +93,9 @@ async function uploadImageToS3(imageBuffer, bucket, key) {
 }
 
 async function moveImage(imageBuffer, bucket, sourceKey, destinationKey) {
+  let originalImage;
   try {
-    await s3.copyObject({
+    originalImage = await s3.copyObject({
       Bucket: bucket,
       Key: destinationKey,
       CopySource: `${bucket}/${sourceKey}`
@@ -94,4 +111,6 @@ async function moveImage(imageBuffer, bucket, sourceKey, destinationKey) {
   } catch (err) {
     console.error(err);
   }
+
+  return originalImage;
 }

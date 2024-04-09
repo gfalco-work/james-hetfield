@@ -18,11 +18,11 @@ Globals:
       - "application/json"
 
 Resources:
-  Uploader:
+  UploadImageLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
-      Handler: uploader.lambdaHandler
+      Handler: upload.lambdaHandler
       Runtime: nodejs20.x
       Timeout: 60
       Events:
@@ -44,7 +44,7 @@ Resources:
               Effect: Allow
               Resource: arn:aws:s3:::*
 
-  Resizer:
+  ResizeImageLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
@@ -75,7 +75,7 @@ Resources:
   LambdaInvokePermission:
     Type: 'AWS::Lambda::Permission'
     Properties:
-      FunctionName: !GetAtt Resizer.Arn
+      FunctionName: !GetAtt ResizeImageLambdaFunction.Arn
       Action: 'lambda:InvokeFunction'
       Principal: 's3.amazonaws.com'
       SourceAccount: !Sub ${AWS::AccountId}
@@ -85,3 +85,21 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: vai-assets
+
+Outputs:
+  UploadImageLambdaFunctionArn:
+    Value: !GetAtt UploadImageLambdaFunction.Arn
+    Export:
+      Name: "UploadImageLambdaFunctionArn"
+  UploadImageLambdaFunctionName:
+    Value: !Ref UploadImageLambdaFunction
+    Export:
+      Name: "UploadImageLambdaFunction"
+  ResizeImageLambdaFunctionArn:
+    Value: !GetAtt ResizeImageLambdaFunction.Arn
+    Export:
+      Name: "ResizeImageLambdaFunctionArn"
+  ResizeImageLambdaFunctionName:
+    Value: !Ref ResizeImageLambdaFunction
+    Export:
+      Name: "ResizeImageLambdaFunction"
