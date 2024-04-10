@@ -17,7 +17,7 @@ Globals:
       AllowOrigin: "'*'"
 
 Resources:
-  UploadImageLambdaFunction:
+  GetSignedUrlLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src
