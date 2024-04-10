@@ -5,7 +5,7 @@ const s3 = new aws.S3();
 export const lambdaHandler = async (event) => {
   console.log('Received Step Functions event:', JSON.stringify(event, null, 2));
 
-  // Extracting bucket and key values from the image object
+  // Extracting bucket and key values from the input image object
   const bucket = event.bucket;
   const key = event.key;
 
@@ -13,6 +13,12 @@ export const lambdaHandler = async (event) => {
 
   let body;
   let statusCode = 200;
+  let headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST"
+  };
+
   try {
     let image = await s3.getObject({Bucket: bucket, Key: key}).promise();
 
@@ -26,31 +32,42 @@ export const lambdaHandler = async (event) => {
       // Check that the image type is supported
       if (fileExtension === "jpg" || fileExtension === "png") {
         const sizes = {
-          _thumbnail: 150,
-          _carousel: 300,
-          _product: 600
+          thumbnail: 150,
+          carousel: 300,
+          product: 600
         };
 
-        const resizedImageUrls = []; // Array to store resized image URLs
+        const resizedImagesInfo = [];
 
         // Loop through sizes to create resized copies of the original image
         for (const [sizeKey, sizeValue] of Object.entries(sizes)) {
           const resizedImage = await resizeImage(image.Body, sizeValue);
           const copyKey = `${folder}/${imageName}/${imageName}${sizeKey}.${fileExtension}`;
           console.log('resized imageName: ' + copyKey);
-          const resizedImageUrl = await uploadImageToS3(resizedImage, bucket, copyKey);
-          resizedImageUrls.push(resizedImageUrl); // Store resized image URL
+          await uploadImageToS3(resizedImage, bucket, copyKey);
+          // Store information about the resized image
+          resizedImagesInfo.push({
+            urls: copyKey,
+            type: sizeKey.substring(1) // Extracting the type from the sizeKey (removing the underscore)
+          });
         }
 
         const originalImageDestination = `${folder}/${imageName}/${imageName}.${fileExtension}`;
         // Move the original image to its folder
-        const resizedImageUrl = await moveImage(image.Body, bucket, key, originalImageDestination);
-        resizedImageUrls.push(resizedImageUrl); // Store resized image URL
+        await moveImage(image.Body, bucket, key, originalImageDestination);
+        resizedImagesInfo.push({
+          urls: originalImageDestination,
+          type: 'zoom'
+        });
+
+        console.log(body);
         // Return the resized image URLs in the response body
-        return {statusCode, body: JSON.stringify({message: "Images Resized", productImage: 'imageName', resizedImageUrls})};
+        body = {
+          image: `${imageName}.${fileExtension}`,
+          resizedImages: resizedImagesInfo
+        }
       } else {
         body = `Unsupported image type: ${fileExtension}`;
-        console.log(body);
         statusCode = 400;
       }
     }
@@ -61,12 +78,6 @@ export const lambdaHandler = async (event) => {
   }
 
   console.log(body);
-
-  let headers = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS"
-  };
 
   return {statusCode, body, headers};
 }

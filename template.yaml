@@ -39,6 +39,7 @@ Resources:
       CodeUri: src
       Handler: resize.lambdaHandler
       Runtime: nodejs20.x
+      Timeout: 30
       Events:
         Api:
           Type: Api
