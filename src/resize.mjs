@@ -14,9 +14,9 @@ export const lambdaHandler = async (event) => {
   let body;
   let statusCode = 200;
   let headers = {
-    "Content-Type": "application/json",
+    "Access-Control-Allow-Headers" : "Content-Type",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST"
+    "Access-Control-Allow-Methods": "OPTIONS,POST"
   };
 
   try {
