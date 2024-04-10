@@ -32,9 +32,9 @@ export const lambdaHandler = async (event) => {
       // Check that the image type is supported
       if (fileExtension === "jpg" || fileExtension === "png") {
         const sizes = {
-          thumbnail: 150,
-          carousel: 300,
-          product: 600
+          _thumbnail: 150,
+          _carousel: 300,
+          _product: 600
         };
 
         const resizedImagesInfo = [];
