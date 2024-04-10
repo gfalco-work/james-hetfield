@@ -30,7 +30,7 @@ export const lambdaHandler = async (event) => {
       const fileExtension = key.split('.').pop();
 
       // Check that the image type is supported
-      if (fileExtension === "jpg" || fileExtension === "png") {
+      if (fileExtension === "jpg" || fileExtension === "png" || fileExtension === "jpeg") {
         const sizes = {
           _thumbnail: 150,
           _carousel: 300,
