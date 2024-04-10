@@ -5,14 +5,10 @@ const s3 = new aws.S3();
 export const lambdaHandler = async (event) => {
   console.log('Received Step Functions event:', JSON.stringify(event, null, 2));
 
-  // Extract input data from the event
-  const input = event.Input; // Assuming the input data is directly passed as "Input" in the event
+  // Extracting bucket and key values from the image object
+  const bucket = event.bucket;
+  const key = event.key;
 
-  // Extract the necessary information from the input data
-  const bucket = input.bucket;
-  const key = input.key;
-
-  console.log('key: ' + key);
   const folder = 'resized-product-images';
 
   let body;
