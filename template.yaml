@@ -1,85 +1,53 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Image Api
+  Media Api
 
 Globals:
   Function:
-    Timeout: 3
+    Tracing: Active
+    Tags:
+      app: media-api
+      project: phoenix
   Api:
     TracingEnabled: true
     Cors:
-      AllowMethods: "'POST', 'OPTIONS'"
+      AllowMethods: "'POST, OPTIONS'"
       AllowHeaders: "'Content-Type'"
       AllowOrigin: "'*'"
-      MaxAge: "'86400'"
-    BinaryMediaTypes:
-      - "multipart/form-data"
-      - "application/json"
 
 Resources:
   UploadImageLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/
-      Handler: upload.lambdaHandler
+      CodeUri: src
+      Handler: getSignedUrl.lambdaHandler
       Runtime: nodejs20.x
-      Timeout: 60
       Events:
         Api:
           Type: Api
           Properties:
-            Path: /images/upload
+            Path: /media/get-signed-url
             Method: POST
       Policies:
-        - Statement:
-            - Sid: CloudWatchLogsPermissions
-              Action:
-                - "logs:*"
-              Effect: Allow
-              Resource: "arn:aws:logs:*:*:*"
-            - Sid: S3Permissions
-              Action:
-                - s3:PutObject
-              Effect: Allow
-              Resource: arn:aws:s3:::*
+        - CloudWatchLogsFullAccess
+        - AmazonS3FullAccess
 
   ResizeImageLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: src/
+      CodeUri: src
       Handler: resize.lambdaHandler
       Runtime: nodejs20.x
-      Timeout: 60
       Events:
         Api:
           Type: Api
           Properties:
-            Path: /images/resize
+            Path: /media/resize
             Method: POST
       Policies:
-        - Statement:
-            - Sid: CloudWatchLogsPermissions
-              Action:
-                - "logs:*"
-              Effect: Allow
-              Resource: "arn:aws:logs:*:*:*"
-            - Sid: S3Permissions
-              Action:
-                - s3:GetObject
-                - s3:PutObject
-                - s3:DeleteObject
-              Effect: Allow
-              Resource: arn:aws:s3:::*
-
-  LambdaInvokePermission:
-    Type: 'AWS::Lambda::Permission'
-    Properties:
-      FunctionName: !GetAtt ResizeImageLambdaFunction.Arn
-      Action: 'lambda:InvokeFunction'
-      Principal: 's3.amazonaws.com'
-      SourceAccount: !Sub ${AWS::AccountId}
-      SourceArn: !GetAtt AssetsBucket.Arn
+        - CloudWatchLogsFullAccess
+        - AmazonS3FullAccess
 
   AssetsBucket:
     Type: AWS::S3::Bucket
@@ -87,14 +55,6 @@ Resources:
       BucketName: vai-assets
 
 Outputs:
-  UploadImageLambdaFunctionArn:
-    Value: !GetAtt UploadImageLambdaFunction.Arn
-    Export:
-      Name: "UploadImageLambdaFunctionArn"
-  UploadImageLambdaFunctionName:
-    Value: !Ref UploadImageLambdaFunction
-    Export:
-      Name: "UploadImageLambdaFunction"
   ResizeImageLambdaFunctionArn:
     Value: !GetAtt ResizeImageLambdaFunction.Arn
     Export:
