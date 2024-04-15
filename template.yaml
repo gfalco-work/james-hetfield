@@ -50,11 +50,6 @@ Resources:
         - CloudWatchLogsFullAccess
         - AmazonS3FullAccess
 
-  AssetsBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: vai-assets
-
 Outputs:
   ResizeImageLambdaFunctionArn:
     Value: !GetAtt ResizeImageLambdaFunction.Arn
