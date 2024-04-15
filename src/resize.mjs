@@ -47,7 +47,7 @@ export const lambdaHandler = async (event) => {
           await uploadImageToS3(resizedImage, bucket, copyKey);
           // Store information about the resized image
           resizedImagesInfo.push({
-            urls: copyKey,
+            url: copyKey,
             type: sizeKey.substring(1) // Extracting the type from the sizeKey (removing the underscore)
           });
         }
