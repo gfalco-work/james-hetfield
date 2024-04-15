@@ -56,11 +56,10 @@ export const lambdaHandler = async (event) => {
         // Move the original image to its folder
         await moveImage(image.Body, bucket, key, originalImageDestination);
         resizedImagesInfo.push({
-          urls: originalImageDestination,
+          url: originalImageDestination,
           type: 'zoom'
         });
 
-        console.log(body);
         // Return the resized image URLs in the response body
         body = {
           image: `${imageName}.${fileExtension}`,
@@ -74,7 +73,7 @@ export const lambdaHandler = async (event) => {
   } catch (err) {
     console.error(err);
     statusCode = 500;
-    body = "Error resizing image: " + err.message;
+    body = "Error resizing image: " + key + " " + err.message;
   }
 
   console.log(body);
